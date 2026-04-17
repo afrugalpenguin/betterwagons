@@ -1,0 +1,28 @@
+# Dependencies / build
+lib/
+src/BetterWagons/bin/
+src/BetterWagons/obj/
+*.user
+*.suo
+
+# IDE
+.vs/
+.idea/
+*.DotSettings.user
+
+# Claude
+.claude/
+
+# Decompiled game code
+decompiled/
+
+# Docs (design docs are local reference, not shipped)
+docs/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# MelonLoader output
+UserData/
