@@ -26,6 +26,9 @@ namespace BetterWagons.Features
                 wagon.CalculateCarryCapacity();
             }
 
+            // Expand on-site storage
+            DepotStorage.EnableForShop(shop);
+
             MelonLogger.Msg("[BetterWagons] Successfully promoted to Cart Depot!");
             return true;
         }

@@ -1,5 +1,6 @@
 using HarmonyLib;
 using BetterWagons.Helpers;
+using BetterWagons.Features;
 using MelonLoader;
 
 namespace BetterWagons.Patches
@@ -32,6 +33,7 @@ namespace BetterWagons.Patches
                 {
                     wagon.CalculateCarryCapacity();
                 }
+                DepotStorage.EnableForShop(__instance);
                 MelonLogger.Msg("[BetterWagons] Cart Depot stats re-applied on load");
             }
         }
