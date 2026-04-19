@@ -15,5 +15,8 @@ copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\Assembly-CSharp.dll" "%LIB_DI
 copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.dll" "%LIB_DIR%\"
 copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.CoreModule.dll" "%LIB_DIR%\"
 copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.AIModule.dll" "%LIB_DIR%\"
+copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.UI.dll" "%LIB_DIR%\"
+copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.UIModule.dll" "%LIB_DIR%\"
+copy /Y "%GAME_DIR%\Farthest Frontier_Data\Managed\UnityEngine.InputLegacyModule.dll" "%LIB_DIR%\"
 
 echo Done. Libraries copied to %LIB_DIR%
