@@ -8,18 +8,21 @@ namespace BetterWagons.Patches
     /// <summary>
     /// Appends Better Wagons state (current resource priority, tier, depot status)
     /// to the building info panel's description text when a WagonShop is selected.
-    /// Panel refreshes on re-select; Toast covers the transient update case.
+    /// Targets UIBuildingInfoWindow_New (the modern card); the legacy
+    /// UIBuildingInfoWindow class exists in the assembly but is not instantiated
+    /// in shipping builds.
     /// </summary>
-    [HarmonyPatch(typeof(UIBuildingInfoWindow), "Init")]
+    [HarmonyPatch(typeof(UIBuildingInfoWindow_New), "InitBasicInfo")]
     public static class ShopInfoPanelPatch
     {
         [HarmonyPostfix]
-        public static void Init_Postfix(UIBuildingInfoWindow __instance, Building _building)
+        public static void InitBasicInfo_Postfix(UIBuildingInfoWindow_New __instance)
         {
             try
             {
-                if (_building == null) return;
-                var shop = _building.GetComponent<WagonShop>();
+                var building = Traverse.Create(__instance).Field("building").GetValue<Building>();
+                if (building == null) return;
+                var shop = building.GetComponent<WagonShop>();
                 if (shop == null) return;
 
                 int tier = TierHelper.GetTier(shop);
@@ -48,7 +51,7 @@ namespace BetterWagons.Patches
                 {
                     int next = tier + 1;
                     string nextLabel = (next == TierHelper.MaxTier) ? "Cart Depot (T4)" : $"Tier {next}";
-                    upgradeHint = $"\n<size=12>Ctrl+Shift+U: upgrade to {nextLabel}</size>";
+                    upgradeHint = $"\n<size=12>Click upgrade button or Ctrl+Shift+U to promote to {nextLabel}</size>";
                 }
 
                 string extra =
@@ -59,10 +62,7 @@ namespace BetterWagons.Patches
                     "\n<size=12>Ctrl+P: cycle priority</size>" +
                     upgradeHint;
 
-                // Read hiResObjs (private) and descriptionText.text via Traverse
-                var hiResObjs = Traverse.Create(__instance).Field("hiResObjs").GetValue();
-                if (hiResObjs == null) return;
-                var descText = Traverse.Create(hiResObjs).Field("descriptionText").GetValue();
+                var descText = Traverse.Create(__instance).Field("descriptionText").GetValue();
                 if (descText == null) return;
                 var textProp = Traverse.Create(descText).Property("text");
                 string current = textProp.GetValue<string>() ?? "";

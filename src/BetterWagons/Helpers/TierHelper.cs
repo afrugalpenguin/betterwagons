@@ -69,20 +69,24 @@ namespace BetterWagons.Helpers
         }
 
         /// <summary>
-        /// Forces the open UIBuildingInfoWindow to re-run Init so vanilla UI elements
-        /// (worker count, tier text, etc.) pick up our freshly-applied bonuses.
+        /// Forces the open building info window to re-run UpdateContext so vanilla
+        /// UI elements (worker count, tier text, description, upgrade button)
+        /// pick up our freshly-applied bonuses. Targets UIBuildingInfoWindow_New
+        /// (the modern card; the legacy UIBuildingInfoWindow class isn't instantiated
+        /// in shipping builds).
         /// </summary>
         private static void RefreshSelectionPanel(WagonShop shop)
         {
             try
             {
-                var panels = Object.FindObjectsOfType<UIBuildingInfoWindow>();
+                var panels = Object.FindObjectsOfType<UIBuildingInfoWindow_New>();
                 foreach (var panel in panels)
                 {
                     if (!panel.isActiveAndEnabled) continue;
                     var bound = Traverse.Create(panel).Field("building").GetValue<Building>();
                     if (bound != (Building)shop) continue;
-                    panel.Init(shop, shop.GetInfoWindowFlags());
+                    var flags = Traverse.Create(panel).Field("storedFlags").GetValue();
+                    Traverse.Create(panel).Method("UpdateContext", flags).GetValue();
                 }
             }
             catch (System.Exception ex)
