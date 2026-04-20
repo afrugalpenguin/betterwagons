@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/github/issues/afrugalpenguin/betterwagons?style=flat-square&color=blue" alt="open issues"/>
   <img src="https://img.shields.io/github/issues-pr/afrugalpenguin/betterwagons?style=flat-square&color=purple" alt="open PRs"/>
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs welcome"/>
+  <img src="https://img.shields.io/github/license/afrugalpenguin/betterwagons?style=flat-square&color=lightgrey" alt="license"/>
 </p>
 
 A MelonLoader mod for **Farthest Frontier** that rebalances wagon workshops: cheaper early game, more worker slots per upgrade, a new Tier-4 **Cart Depot** with on-site storage, persistent per-wagon assignments, per-workshop resource priority, and tuned logistics thresholds. All changes are runtime Harmony patches — no game files are modified.
