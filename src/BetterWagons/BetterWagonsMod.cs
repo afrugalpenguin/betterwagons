@@ -2,7 +2,7 @@ using MelonLoader;
 using BetterWagons.Features;
 using BetterWagons.Helpers;
 
-[assembly: MelonInfo(typeof(BetterWagons.BetterWagonsMod), "Better Wagons", "0.1.0", "BetterWagons Team")]
+[assembly: MelonInfo(typeof(BetterWagons.BetterWagonsMod), "BetterWagons", BetterWagons.BuildInfo.Version, "A Frugal Penguin")]
 [assembly: MelonGame("Crate Entertainment", "Farthest Frontier")]
 
 namespace BetterWagons
@@ -15,7 +15,7 @@ namespace BetterWagons
         {
             Instance = this;
             ModConfig.Initialize();
-            LoggerInstance.Msg("Better Wagons v0.1.0 loaded.");
+            LoggerInstance.Msg($"Better Wagons v{BuildInfo.Version} loaded.");
             LoggerInstance.Msg("Config file: UserData/MelonPreferences.cfg (BetterWagons category)");
             LoggerInstance.Msg("Hotkeys: Ctrl+R = cycle resource priority (WagonShop), Ctrl+A = toggle persistent assignment (TransportWagon)");
         }

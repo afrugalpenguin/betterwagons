@@ -7,6 +7,8 @@
     <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <BaseVersion>0.1.0</BaseVersion>
+    <FarthestFrontierModsPath Condition="'$(FarthestFrontierModsPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Farthest Frontier\Farthest Frontier (Mono)\Mods</FarthestFrontierModsPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,5 +49,42 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
+    <Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" EchoOff="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitCount" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCountExitCode" />
+    </Exec>
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" EchoOff="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitShortSha" />
+      <Output TaskParameter="ExitCode" PropertyName="GitShaExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <BuildVersion Condition="'$(GitCountExitCode)' == '0' AND '$(GitShaExitCode)' == '0'">$(BaseVersion)+$(GitCommitCount).$(GitShortSha)</BuildVersion>
+      <BuildVersion Condition="'$(BuildVersion)' == ''">$(BaseVersion)+local</BuildVersion>
+      <BuildInfoFile>$(IntermediateOutputPath)BuildInfo.g.cs</BuildInfoFile>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <_BuildInfoLines Include="// &lt;auto-generated /&gt;" />
+      <_BuildInfoLines Include="namespace BetterWagons" />
+      <_BuildInfoLines Include="{" />
+      <_BuildInfoLines Include="    internal static class BuildInfo" />
+      <_BuildInfoLines Include="    {" />
+      <_BuildInfoLines Include="        public const string Version = &quot;$(BuildVersion)&quot;%3B" />
+      <_BuildInfoLines Include="    }" />
+      <_BuildInfoLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(BuildInfoFile)" Lines="@(_BuildInfoLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(BuildInfoFile)" />
+    </ItemGroup>
+    <Message Importance="high" Text="Build version: $(BuildVersion)" />
+  </Target>
+
+  <Target Name="DeployToFFMods" AfterTargets="Build" Condition="Exists('$(FarthestFrontierModsPath)')">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(FarthestFrontierModsPath)" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(FarthestFrontierModsPath)" />
+  </Target>
 
 </Project>
