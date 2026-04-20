@@ -26,3 +26,6 @@ Desktop.ini
 
 # MelonLoader output
 UserData/
+
+# Temporary decompile scratch
+.tmp-decomp/
