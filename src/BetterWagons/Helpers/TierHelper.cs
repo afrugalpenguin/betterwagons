@@ -1,61 +1,96 @@
 using System.Collections.Generic;
+using HarmonyLib;
+using MelonLoader;
+using UnityEngine;
+using BetterWagons.Features;
+using BetterWagons.Patches;
 
 namespace BetterWagons.Helpers
 {
+    /// <summary>
+    /// Mod-side tier system for WagonShops. Vanilla FF caps WagonShops at Tier 1,
+    /// so we track tiers 1-4 ourselves keyed on GameObject instance ID.
+    /// Tier 4 is the "Cart Depot" promotion.
+    /// Per-session (resets on game reload — persistence TBD).
+    /// </summary>
     public static class TierHelper
     {
-        // WagonShops that have been promoted to Cart Depot (Tier 4)
-        private static readonly HashSet<int> _promotedToDepot = new HashSet<int>();
+        public const int MinTier = 1;
+        public const int MaxTier = 4;
 
-        /// <summary>
-        /// Returns tier 1-4. Uses Building.tier directly for vanilla tiers.
-        /// Tier 4 is our synthetic "Cart Depot" state layered on top of a
-        /// max-tier vanilla WagonShop (Building.tier remains its vanilla value).
-        /// </summary>
+        private static readonly Dictionary<int, int> _modTier = new Dictionary<int, int>();
+
         public static int GetTier(WagonShop shop)
         {
-            if (shop == null) return 1;
-            if (_promotedToDepot.Contains(shop.gameObject.GetInstanceID())) return 4;
+            if (shop == null) return MinTier;
+            int id = shop.gameObject.GetInstanceID();
+            return _modTier.TryGetValue(id, out int t) ? t : MinTier;
+        }
 
-            Building building = shop;
-            return building != null ? building.tier : 1;
+        public static bool IsDepot(WagonShop shop) => GetTier(shop) == MaxTier;
+
+        public static bool CanUpgrade(WagonShop shop) => GetTier(shop) < MaxTier;
+
+        /// <summary>Bumps the mod tier by 1 (up to MaxTier) and reapplies all bonuses. Returns new tier, or 0 if at cap.</summary>
+        public static int TryUpgrade(WagonShop shop)
+        {
+            if (shop == null) return 0;
+            int current = GetTier(shop);
+            if (current >= MaxTier) return 0;
+            int next = current + 1;
+            _modTier[shop.gameObject.GetInstanceID()] = next;
+            ReapplyAllBonuses(shop);
+            return next;
+        }
+
+        public static void SetTier(WagonShop shop, int tier)
+        {
+            if (shop == null) return;
+            if (tier < MinTier) tier = MinTier;
+            if (tier > MaxTier) tier = MaxTier;
+            _modTier[shop.gameObject.GetInstanceID()] = tier;
+            ReapplyAllBonuses(shop);
+        }
+
+        public static void ReapplyAllBonuses(WagonShop shop)
+        {
+            if (shop == null) return;
+            WagonShopPatches.ApplyWorkerBonus(shop);
+            BuildingPatches.ApplyRadiusBonus(shop);
+            if (shop.registeredWagonsRO != null)
+            {
+                foreach (var wagon in shop.registeredWagonsRO)
+                {
+                    if (wagon != null) wagon.CalculateCarryCapacity();
+                }
+            }
+            if (IsDepot(shop)) DepotStorage.EnableForShop(shop);
+            RefreshSelectionPanel(shop);
         }
 
         /// <summary>
-        /// True when the shop is at max vanilla tier (no further upgrade) and has not yet been promoted.
-        /// Max vanilla tier is detected by the absence of an upgrade prefab on buildingUpgradeInfo.
+        /// Forces the open UIBuildingInfoWindow to re-run Init so vanilla UI elements
+        /// (worker count, tier text, etc.) pick up our freshly-applied bonuses.
         /// </summary>
-        public static bool CanPromoteToDepot(WagonShop shop)
+        private static void RefreshSelectionPanel(WagonShop shop)
         {
-            if (shop == null) return false;
-            if (_promotedToDepot.Contains(shop.gameObject.GetInstanceID())) return false;
-
-            Building building = shop;
-            if (building == null) return false;
-
-            var upgradeInfo = building.buildingUpgradeInfo;
-            if (upgradeInfo == null) return true;
-
-            var req = upgradeInfo.upgradeRequirement;
-            if (req == null) return true;
-            if (req.upgradedPrefab == null) return true;
-
-            return false;
+            try
+            {
+                var panels = Object.FindObjectsOfType<UIBuildingInfoWindow>();
+                foreach (var panel in panels)
+                {
+                    if (!panel.isActiveAndEnabled) continue;
+                    var bound = Traverse.Create(panel).Field("building").GetValue<Building>();
+                    if (bound != (Building)shop) continue;
+                    panel.Init(shop, shop.GetInfoWindowFlags());
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MelonLogger.Warning($"[TierHelper] panel refresh failed: {ex.Message}");
+            }
         }
 
-        public static void PromoteToDepot(WagonShop shop)
-        {
-            if (!CanPromoteToDepot(shop)) return;
-            _promotedToDepot.Add(shop.gameObject.GetInstanceID());
-            MelonLoader.MelonLogger.Msg("[BetterWagons] WagonShop promoted to Cart Depot (Tier 4)");
-        }
-
-        public static bool IsDepot(WagonShop shop)
-        {
-            if (shop == null) return false;
-            return _promotedToDepot.Contains(shop.gameObject.GetInstanceID());
-        }
-
-        public static void Clear() => _promotedToDepot.Clear();
+        public static void Clear() => _modTier.Clear();
     }
 }

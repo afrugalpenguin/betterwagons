@@ -3,14 +3,20 @@ using MelonLoader;
 
 namespace BetterWagons.Patches
 {
-    [HarmonyPatch(typeof(LogisticsConfiguration))]
+    [HarmonyPatch(typeof(GameManager), "Awake")]
     public static class LogisticsPatches
     {
-        [HarmonyPatch("Awake")]
         [HarmonyPostfix]
-        public static void Awake_Postfix(LogisticsConfiguration __instance)
+        public static void Awake_Postfix(GameManager __instance)
         {
-            var traverse = Traverse.Create(__instance);
+            var config = __instance.logisticsConfiguration;
+            if (config == null)
+            {
+                MelonLogger.Warning("[Logistics] logisticsConfiguration is null after GameManager.Awake; skipping tuning.");
+                return;
+            }
+
+            var traverse = Traverse.Create(config);
 
             float minWeight = ModConfig.MinWeightForBulkTransport.Value;
             traverse.Field("_minWeightForBulkTransport").SetValue(minWeight);

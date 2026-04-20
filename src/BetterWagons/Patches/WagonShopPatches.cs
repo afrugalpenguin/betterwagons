@@ -14,11 +14,19 @@ namespace BetterWagons.Patches
         [HarmonyPostfix]
         public static void Start_Postfix(WagonShop __instance)
         {
-            int id = __instance.gameObject.GetInstanceID();
-            if (!_vanillaMaxWorkers.ContainsKey(id))
-                _vanillaMaxWorkers[id] = __instance.maxWorkers;
+            BetterWagons.Helpers.TraceLog.Write($"[TRACE] WagonShop.Start_Postfix ENTER name={__instance?.name ?? "null"}");
+            try
+            {
+                int id = __instance.gameObject.GetInstanceID();
+                if (!_vanillaMaxWorkers.ContainsKey(id))
+                    _vanillaMaxWorkers[id] = __instance.maxWorkers;
 
-            ApplyWorkerBonus(__instance);
+                ApplyWorkerBonus(__instance);
+            }
+            catch (System.Exception ex)
+            {
+                BetterWagons.Helpers.TraceLog.Write($"[TRACE] WagonShop.Start_Postfix THREW: {ex}");
+            }
         }
 
         public static void ApplyWorkerBonus(WagonShop shop)

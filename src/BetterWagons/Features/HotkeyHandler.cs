@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using MelonLoader;
 
@@ -18,62 +17,86 @@ namespace BetterWagons.Features
         public static void OnUpdate()
         {
             bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            if (!ctrl) return;
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            bool alt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+            if (!ctrl || shift || alt) return;
 
-            if (Input.GetKeyDown(KeyCode.R)) CycleResourcePriority();
+            // Ctrl+P: cycle resource priority on selected WagonShop.
+            if (Input.GetKeyDown(KeyCode.P)) CycleResourcePriority();
+            // Ctrl+A: toggle persistent assignment on selected TransportWagon.
             else if (Input.GetKeyDown(KeyCode.A)) TogglePersistentAssignment();
         }
 
-        private static List<GameObject> GetSelectedObjects()
+        private static GameObject GetSelectedObject()
         {
-            var selection = Object.FindObjectOfType<UIObjectSelection>();
-            return selection != null ? selection.selectedObjs : null;
+            var gm = UnitySingleton<GameManager>.Instance;
+            if (gm == null) return null;
+            var input = gm.inputManager;
+            if (input == null) return null;
+            return input.selectedObject;
+        }
+
+        private static T FindOnOrAround<T>(GameObject obj) where T : Component
+        {
+            if (obj == null) return null;
+            var c = obj.GetComponent<T>();
+            if (c != null) return c;
+            c = obj.GetComponentInParent<T>();
+            if (c != null) return c;
+            c = obj.GetComponentInChildren<T>();
+            return c;
         }
 
         private static void CycleResourcePriority()
         {
-            var selected = GetSelectedObjects();
-            if (selected == null) return;
-            int count = 0;
-            foreach (var obj in selected)
+            var obj = GetSelectedObject();
+            if (obj == null)
             {
-                if (obj == null) continue;
-                var shop = obj.GetComponent<WagonShop>();
-                if (shop == null) continue;
-                ResourcePriority.CyclePreference(shop);
-                count++;
-                MelonLogger.Msg($"[BetterWagons] {shop.name}: resource priority -> {ResourcePriority.GetPreference(shop)}");
+                Toast.Show("Ctrl+P: select a WagonShop first");
+                return;
             }
-            if (count == 0) MelonLogger.Msg("[BetterWagons] Ctrl+R ignored: no WagonShop selected");
+            var shop = FindOnOrAround<WagonShop>(obj);
+            if (shop == null)
+            {
+                Toast.Show($"Ctrl+P: '{obj.name}' is not a WagonShop");
+                return;
+            }
+            ResourcePriority.CyclePreference(shop);
+            var pref = ResourcePriority.GetPreference(shop);
+            Toast.Show($"{shop.name}: priority -> {pref}");
+            MelonLogger.Msg($"[BetterWagons] {shop.name}: resource priority -> {pref}");
         }
 
         private static void TogglePersistentAssignment()
         {
-            var selected = GetSelectedObjects();
-            if (selected == null) return;
-            int count = 0;
-            foreach (var obj in selected)
+            var obj = GetSelectedObject();
+            if (obj == null)
             {
-                if (obj == null) continue;
-                var wagon = obj.GetComponent<TransportWagon>();
-                if (wagon == null) continue;
-                count++;
-
-                if (PersistentAssignment.HasAssignment(wagon))
-                {
-                    PersistentAssignment.SetAssignment(wagon, null);
-                    continue;
-                }
-
-                var target = wagon.priorityPickup;
-                if (target == null)
-                {
-                    MelonLogger.Msg($"[BetterWagons] {wagon.name}: set a priority pickup first, then Ctrl+A to persist it");
-                    continue;
-                }
-                PersistentAssignment.SetAssignment(wagon, target);
+                Toast.Show("Ctrl+A: select a TransportWagon first");
+                return;
             }
-            if (count == 0) MelonLogger.Msg("[BetterWagons] Ctrl+A ignored: no TransportWagon selected");
+            var wagon = FindOnOrAround<TransportWagon>(obj);
+            if (wagon == null)
+            {
+                Toast.Show($"Ctrl+A: '{obj.name}' is not a TransportWagon");
+                return;
+            }
+
+            if (PersistentAssignment.HasAssignment(wagon))
+            {
+                PersistentAssignment.SetAssignment(wagon, null);
+                Toast.Show($"{wagon.name}: persistent assignment CLEARED");
+                return;
+            }
+
+            var target = wagon.priorityPickup;
+            if (target == null)
+            {
+                Toast.Show($"{wagon.name}: set a priority pickup first, then Ctrl+A");
+                return;
+            }
+            PersistentAssignment.SetAssignment(wagon, target);
+            Toast.Show($"{wagon.name}: persistent assignment -> {target.name}");
         }
     }
 }
