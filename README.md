@@ -1,5 +1,20 @@
 # Better Wagons
 
+<p align="center">
+  <img src="https://img.shields.io/badge/game-Farthest%20Frontier-8B6F47?style=for-the-badge&logo=steam&logoColor=white" alt="Farthest Frontier"/>
+  <img src="https://img.shields.io/badge/MelonLoader-required-39FF14?style=for-the-badge&logo=unity&logoColor=black" alt="MelonLoader"/>
+  <img src="https://img.shields.io/badge/Harmony-2.x-5865F2?style=for-the-badge" alt="Harmony"/>
+  <img src="https://img.shields.io/badge/.NET%20Framework-4.7.2-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET Framework 4.7.2"/>
+  <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/afrugalpenguin/betterwagons?style=flat-square&color=orange" alt="last commit"/>
+  <img src="https://img.shields.io/github/issues/afrugalpenguin/betterwagons?style=flat-square&color=blue" alt="open issues"/>
+  <img src="https://img.shields.io/github/issues-pr/afrugalpenguin/betterwagons?style=flat-square&color=purple" alt="open PRs"/>
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs welcome"/>
+</p>
+
 A MelonLoader mod for **Farthest Frontier** that rebalances wagon workshops: cheaper early game, more worker slots per upgrade, a new Tier-4 **Cart Depot** with on-site storage, persistent per-wagon assignments, per-workshop resource priority, and tuned logistics thresholds. All changes are runtime Harmony patches — no game files are modified.
 
 ## Install
