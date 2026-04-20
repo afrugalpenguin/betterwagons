@@ -17,12 +17,25 @@ namespace BetterWagons
             ModConfig.Initialize();
             LoggerInstance.Msg($"Better Wagons v{BuildInfo.Version} loaded.");
             LoggerInstance.Msg("Config file: UserData/MelonPreferences.cfg (BetterWagons category)");
-            LoggerInstance.Msg("Hotkeys: Ctrl+R = cycle resource priority (WagonShop), Ctrl+A = toggle persistent assignment (TransportWagon)");
+#if DEBUG
+            LoggerInstance.Warning("DEBUG build: cheat hotkeys enabled. Do not ship this DLL.");
+            LoggerInstance.Msg("Hotkeys: Ctrl+P = cycle resource priority (WagonShop), Ctrl+A = toggle persistent assignment (TransportWagon), Ctrl+Shift+U = upgrade under cursor, Ctrl+Shift+F = toggle free build, Ctrl+Shift+V = +10 villagers, Ctrl+Shift+S = force save");
+#else
+            LoggerInstance.Msg("Hotkeys: Ctrl+P = cycle resource priority (WagonShop), Ctrl+A = toggle persistent assignment (TransportWagon)");
+#endif
+        }
+
+        public override void OnGUI()
+        {
+            Toast.OnGUI();
         }
 
         public override void OnUpdate()
         {
             HotkeyHandler.OnUpdate();
+#if DEBUG
+            CheatHotkeys.OnUpdate();
+#endif
         }
 
         public override void OnDeinitializeMelon()
